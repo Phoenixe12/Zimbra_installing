@@ -335,6 +335,21 @@ Redémarrez Zimbra pour charger le nouveau certificat :
 sudo su zimbra -c '/opt/zimbra/bin/zmcontrol restart'
 ```
 
+##Redémarrage des services off de  Zimbra 
+```bash
+su - zimbra
+
+zmcontrol start mailbox
+zmcontrol start zmconfigd
+zmcontrol start service
+zmcontrol start zimbraAdmin
+zmcontrol start zimlet
+zmcontrol start imapd
+zmcontrol start zimbra
+zmcontrol start mta
+zmcontrol start stats
+```
+
 La tâche cron renouvellera automatiquement votre certificat environ un mois avant son expiration.
 
 ## Ressources supplémentaires
