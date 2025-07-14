@@ -358,6 +358,93 @@ La tâche cron renouvellera automatiquement votre certificat environ un mois ava
 - [Configuration du proxy Zimbra et memcached](https://wiki.zimbra.com/wiki/Enabling_Zimbra_Proxy_and_memcached)
 - [Installateur automatisé Zimbra](https://github.com/Zimbra/zinstaller) - Inclut également la configuration Let's Encrypt
 
+
+  ## Renouvellements du SSL
+
+# Guide de Renouvellement SSL pour Zimbra
+
+## 📋 Vue d'ensemble
+
+Ce guide explique comment renouveler le certificat SSL Let's Encrypt sur un serveur Zimbra déjà configuré. Il couvre le renouvellement manuel, automatique et le dépannage.
+
+## ⚠️ Prérequis
+
+- Serveur Zimbra fonctionnel avec certificat Let's Encrypt existant
+- Accès root au serveur
+- Certbot installé dans `/usr/local/sbin/certbot`
+- Domaine configuré (exemple: `mail.metalafrique-it.com`)
+
+## 🔄 Renouvellement Manuel
+
+### Vérification de l'état du certificat
+
+```bash
+# Vérifier la date d'expiration actuelle
+openssl x509 -in /opt/zimbra/ssl/zimbra/commercial/commercial.crt -text -noout | grep "Not After"
+
+# Vérifier les certificats Let's Encrypt disponibles
+/usr/local/sbin/certbot certificates
+```
+
+### Renouvellement étape par étape
+
+#### Étape 1: Arrêter les services web
+```bash
+# Arrêter le proxy Zimbra pour libérer le port 80
+su - zimbra -c "zmproxyctl stop"
+
+# Vérifier que les ports sont libres
+netstat -tulpn | grep ":80"
+```
+
+#### Étape 2: Renouveler le certificat
+```bash
+# Renouvellement avec Certbot
+/usr/local/sbin/certbot renew --cert-name mail.metalafrique-it.com --force-renewal
+
+# Ou créer un nouveau certificat si nécessaire
+/usr/local/sbin/certbot certonly -d mail.metalafrique-it.com --standalone --preferred-chain "ISRG Root X2" --agree-tos --register-unsafely-without-email
+```
+
+#### Étape 3: Déployer le certificat dans Zimbra
+```bash
+# Copier la clé privée
+cp "/etc/letsencrypt/live/mail.metalafrique-it.com/privkey.pem" /opt/zimbra/ssl/zimbra/commercial/commercial.key
+chown zimbra:zimbra /opt/zimbra/ssl/zimbra/commercial/commercial.key
+
+# Télécharger la chaîne racine ISRG
+wget -O /tmp/ISRG-X2.pem https://letsencrypt.org/certs/isrg-root-x2.pem
+
+# Créer la chaîne complète pour Zimbra
+cp "/etc/letsencrypt/live/mail.metalafrique-it.com/chain.pem" "/tmp/chainZimbra.pem"
+cat /tmp/ISRG-X2.pem >> "/tmp/chainZimbra.pem"
+
+# Déployer le certificat dans Zimbra
+su zimbra -c '/opt/zimbra/bin/zmcertmgr deploycrt comm "/etc/letsencrypt/live/mail.metalafrique-it.com/cert.pem" "/tmp/chainZimbra.pem"'
+
+# Nettoyer les fichiers temporaires
+rm -f /tmp/chainZimbra.pem /tmp/ISRG-X2.pem
+```
+
+#### Étape 4: Redémarrer Zimbra
+```bash
+# Redémarrer tous les services Zimbra
+su - zimbra -c "zmcontrol restart"
+```
+
+#### Étape 5: Vérification
+```bash
+# Vérifier la nouvelle date d'expiration
+openssl x509 -in /opt/zimbra/ssl/zimbra/commercial/commercial.crt -text -noout | grep "Not After"
+
+# Tester l'accès HTTPS
+curl -I https://mail.metalafrique-it.com
+
+# Vérifier l'état des services
+su - zimbra -c "zmcontrol status"
+```
+
+
 ## Contributions
 
 Les contributions à ce guide sont les bienvenues. Veuillez soumettre une pull request ou ouvrir une issue pour toute suggestion d'amélioration.
