@@ -447,7 +447,7 @@ su - zimbra -c "zmcontrol status"
 # Ici vous aurez un rapport de tous les problèmes rencontrés et comment je les ai corrigés
 
 ## Problème
-- 7 messages bloqués vers `recoveryzonesenegal.com`
+- 7 messages bloqués vers `xxxxxxxxx.com`
 - Erreurs : Connection refused / timeout
 - Queue qui ne se vide pas
 
@@ -462,7 +462,7 @@ su zimbra
 ### Tester la destination
 ```bash
 telnet 168.231.76.223 25
-dig recoveryzonesenegal.com MX
+dig xxxxxxxxx.com MX
 ```
 
 **Résultat** : Pas de serveur mail configuré pour ce domaine
@@ -472,8 +472,8 @@ dig recoveryzonesenegal.com MX
 ### Solution 1 : Ajouter le domaine à Zimbra
 ```bash
 su zimbra
-zmprov cd recoveryzonesenegal.com
-zmprov ca noreply@recoveryzonesenegal.com motdepasse123
+zmprov cd xxxxxxxxx.com
+zmprov ca noreply@xxxxxxxxx.com motdepasse123
 /opt/zimbra/common/sbin/postqueue -f
 ```
 
