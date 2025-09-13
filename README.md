@@ -443,9 +443,40 @@ curl -I https://mail.metalafrique-it.com
 # Vérifier l'état des services
 su - zimbra -c "zmcontrol status"
 ```
+## Guide : Messages Bloqués en Queue Zimbra
+# Ici vous aurez un rapport de tous les problèmes rencontrés et comment je les ai corrigés
 
+## Problème
+- 7 messages bloqués vers `recoveryzonesenegal.com`
+- Erreurs : Connection refused / timeout
+- Queue qui ne se vide pas
 
-## Contributions
+## Diagnostic
+
+### Vérifier la queue
+```bash
+su zimbra
+/opt/zimbra/common/sbin/postqueue -p
+```
+
+### Tester la destination
+```bash
+telnet 168.231.76.223 25
+dig recoveryzonesenegal.com MX
+```
+
+**Résultat** : Pas de serveur mail configuré pour ce domaine
+
+## Solutions
+
+### Solution 1 : Ajouter le domaine à Zimbra
+```bash
+su zimbra
+zmprov cd recoveryzonesenegal.com
+zmprov ca noreply@recoveryzonesenegal.com motdepasse123
+/opt/zimbra/common/sbin/postqueue -f
+```
+
 
 Les contributions à ce guide sont les bienvenues. Veuillez soumettre une pull request ou ouvrir une issue pour toute suggestion d'amélioration.
 
